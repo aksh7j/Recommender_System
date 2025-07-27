@@ -1,0 +1,106 @@
+Collaborative Filtering Recommendations for User 1:
+                                                   title                                      genres
+49                            Usual Suspects, The (1995)                      Crime|Mystery|Thriller
+840                                Godfather, The (1972)                                 Crime|Drama
+1176                        To Kill a Mockingbird (1962)                                       Drama
+5905                 City of God (Cidade de Deus) (2002)       Action|Adventure|Crime|Drama|Thriller
+6589                          Lost in Translation (2003)                        Comedy|Drama|Romance
+7237        Eternal Sunshine of the Spotless Mind (2004)                        Drama|Romance|Sci-Fi
+8248                             Incredibles, The (2004)  Action|Adventure|Animation|Children|Comedy
+11117  Borat: Cultural Learnings of America for Make ...                                      Comedy
+11164                             Children of Men (2006)      Action|Adventure|Drama|Sci-Fi|Thriller
+12326                                    Iron Man (2008)                     Action|Adventure|Sci-Fi
+
+Content-Based Recommendations for User 1:
+                                          title        genres
+71                 Kicking and Screaming (1995)  Comedy|Drama
+74                             Big Bully (1996)  Comedy|Drama
+81              Antonia's Line (Antonia) (1995)  Comedy|Drama
+83           Last Summer in the Hamptons (1995)  Comedy|Drama
+94                In the Bleak Midwinter (1995)  Comedy|Drama
+104  Nobody Loves Me (Keiner liebt mich) (1994)  Comedy|Drama
+131                            Nueba Yol (1995)  Comedy|Drama
+154                     Blue in the Face (1995)  Comedy|Drama
+169                              Jeffrey (1995)  Comedy|Drama
+176                 Love & Human Remains (1993)  Comedy|Drama
+
+Hybrid Recommendations for User 1:
+                                                   title                                      genres
+11117  Borat: Cultural Learnings of America for Make ...                                      Comedy
+6589                          Lost in Translation (2003)                        Comedy|Drama|Romance
+7237        Eternal Sunshine of the Spotless Mind (2004)                        Drama|Romance|Sci-Fi
+5905                 City of God (Cidade de Deus) (2002)       Action|Adventure|Crime|Drama|Thriller
+840                                Godfather, The (1972)                                 Crime|Drama
+49                            Usual Suspects, The (1995)                      Crime|Mystery|Thriller
+1176                        To Kill a Mockingbird (1962)                                       Drama
+762                                 Trainspotting (1996)                          Comedy|Crime|Drama
+11164                             Children of Men (2006)      Action|Adventure|Drama|Sci-Fi|Thriller
+8248                             Incredibles, The (2004)  Action|Adventure|Animation|Children|Comedy
+
+Enter User ID to generate recommendations for: 84
+
+Collaborative Filtering Recommendations for User 84:
+                                                   title                            genres
+109                                   Taxi Driver (1976)              Crime|Drama|Thriller
+600                                         Fargo (1996)       Comedy|Crime|Drama|Thriller
+840                                Godfather, The (1972)                       Crime|Drama
+1171   Good, the Bad and the Ugly, The (Buono, il bru...          Action|Adventure|Western
+1173                                 12 Angry Men (1957)                             Drama
+1190                      Godfather: Part II, The (1974)                       Crime|Drama
+1559                            L.A. Confidential (1997)  Crime|Film-Noir|Mystery|Thriller
+1939                          Saving Private Ryan (1998)                  Action|Drama|War
+2197                                   Thing, The (1982)     Action|Horror|Sci-Fi|Thriller
+12223                            Dark Knight, The (2008)           Action|Crime|Drama|IMAX
+
+Content-Based Recommendations for User 84:
+                                        title                                      genres
+1823                      Out of Sight (1998)         Comedy|Crime|Drama|Romance|Thriller
+3791                       Nurse Betty (2000)         Comedy|Crime|Drama|Romance|Thriller
+34340  Confessions of a Dangerous Mind (2002)         Comedy|Crime|Drama|Romance|Thriller
+39397            The Lone Wolf Strikes (1940)         Comedy|Crime|Drama|Romance|Thriller
+39963                   Rajathandhiram (2015)         Comedy|Crime|Drama|Romance|Thriller
+26929                         Longshot (2001)  Action|Comedy|Crime|Drama|Romance|Thriller
+46833             Under New Management (2009)  Action|Comedy|Crime|Drama|Romance|Thriller
+697                           Captives (1994)                Crime|Drama|Romance|Thriller
+847                              Bound (1996)                Crime|Drama|Romance|Thriller
+2076                Return to Paradise (1998)                Crime|Drama|Romance|Thriller
+
+Hybrid Recommendations for User 84:
+                                title                         genres
+840             Godfather, The (1972)                    Crime|Drama
+1173              12 Angry Men (1957)                          Drama
+1190   Godfather: Part II, The (1974)                    Crime|Drama
+600                      Fargo (1996)    Comedy|Crime|Drama|Thriller
+109                Taxi Driver (1976)           Crime|Drama|Thriller
+1939       Saving Private Ryan (1998)               Action|Drama|War
+2197                Thing, The (1982)  Action|Horror|Sci-Fi|Thriller
+1175       Clockwork Orange, A (1971)    Crime|Drama|Sci-Fi|Thriller
+12223         Dark Knight, The (2008)        Action|Crime|Drama|IMAX
+5                         Heat (1995)          Action|Crime|Thriller
+
+Cold-start recommendations (top-rated overall):
+                                   title                  genres
+56921             Traces of Smoke (1992)      (no genres listed)
+56935           Love Pret-a-porte (2017)          Comedy|Romance
+57017               Still Burning (2016)                   Drama
+57179  The Revolution That Wasn't (2008)      (no genres listed)
+84334          Going Varsity In Mariachi             Documentary
+84361                     ManFish (2022)           Comedy|Horror
+84385       It's a Wonderful Life (2007)  Comedy|Fantasy|Romance
+84386     Mr. Krueger's Christmas (1980)          Children|Drama
+84407                  Mal de Ojo (2022)                  Horror
+84409                     Shadows (2023)                Thriller
+
+--- Starting real-time simulation for one user only ---
+
+Real-time recommendations for user 52251 after receiving new rating:
+                                                  title                       genres
+289   Léon: The Professional (a.k.a. The Professiona...  Action|Crime|Drama|Thriller
+292                                 Pulp Fiction (1994)  Comedy|Crime|Drama|Thriller
+1171  Good, the Bad and the Ugly, The (Buono, il bru...     Action|Adventure|Western
+1201                       Boot, Das (Boat, The) (1981)             Action|Drama|War
+3846                         Requiem for a Dream (2000)                        Drama
+
+Reached ratings for a new user 195638. Stopping simulation.
+
+--- Real-time simulation ended ---

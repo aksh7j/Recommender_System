@@ -1,0 +1,204 @@
+import pandas as pd
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
+import warnings
+warnings.filterwarnings('ignore')
+
+# Load data
+ratings = pd.read_csv(r'C:/Users/Bryan/OneDrive/Desktop/ratings.csv')
+movies = pd.read_csv(r'C:/Users/Bryan/OneDrive/Desktop/movies.csv')
+
+# Merge data and preprocess
+data = pd.merge(ratings, movies, on='movieId')
+data['timestamp'] = pd.to_datetime(data['timestamp'], unit='s')
+
+# Utility function to get subset with ensured user presence
+def get_top_subset(data, user_id=None, top_users_n=500, top_movies_n=500):
+    top_users = data['userId'].value_counts().index[:top_users_n].tolist()
+    if user_id is not None and user_id not in top_users:
+        top_users = [user_id] + top_users
+        top_users = top_users[:top_users_n]
+    top_movies = data['movieId'].value_counts().index[:top_movies_n]
+    subset_data = data[(data['userId'].isin(top_users)) & (data['movieId'].isin(top_movies))]
+    return subset_data
+
+# Collaborative Filtering - User Based with zero-division fix
+def user_based_collaborative_filtering(user_id, data, top_n=10):
+    subset_data = get_top_subset(data, user_id=user_id, top_users_n=500, top_movies_n=500)
+    user_movie_matrix = subset_data.pivot_table(index='userId', columns='movieId', values='rating').fillna(0)
+
+    if user_id not in user_movie_matrix.index:
+        print(f"User {user_id} not in subset data, returning empty recommendations.")
+        return pd.DataFrame(columns=['title', 'genres'])
+
+    user_similarity = cosine_similarity(user_movie_matrix)
+    np.fill_diagonal(user_similarity, 0)
+
+    user_sim_df = pd.DataFrame(user_similarity, index=user_movie_matrix.index, columns=user_movie_matrix.index)
+    similar_users = user_sim_df[user_id].sort_values(ascending=False).head(10).index
+
+    similar_users_ratings = user_movie_matrix.loc[similar_users]
+    weighted_ratings = similar_users_ratings.T.dot(user_sim_df[user_id].loc[similar_users])
+    sum_of_weights = (similar_users_ratings != 0).T.dot(user_sim_df[user_id].loc[similar_users])
+
+    # Fix division by zero
+    sum_of_weights = sum_of_weights.replace(0, 1e-9)
+
+    recommendation_scores = weighted_ratings / sum_of_weights
+
+    already_rated = user_movie_matrix.loc[user_id][user_movie_matrix.loc[user_id] > 0].index
+    recommendation_scores = recommendation_scores.drop(already_rated, errors='ignore')
+    top_recs = recommendation_scores.sort_values(ascending=False).head(top_n).index
+
+    return movies[movies['movieId'].isin(top_recs)][['title', 'genres']]
+
+print("Collaborative Filtering Recommendations for User 1:")
+print(user_based_collaborative_filtering(1, data))
+
+# Content-Based Filtering - memory safe similarity
+def get_content_based_recommendations(user_id, data, movies, top_n=10):
+    user_data = data[data['userId'] == user_id]
+    movie_data = movies.copy()
+    movie_data['genres'] = movie_data['genres'].fillna('')
+
+    tfidf = TfidfVectorizer(stop_words='english')
+    tfidf_matrix = tfidf.fit_transform(movie_data['genres'])
+
+    user_rated_movies = user_data['movieId'].tolist()
+    if not user_rated_movies:
+        print(f"User {user_id} has not rated any movies.")
+        return pd.DataFrame(columns=['title', 'genres'])
+
+    movie_indices = pd.Series(movie_data.index, index=movie_data['movieId'])
+    rated_movie_indices = movie_indices[user_rated_movies].values
+
+    cosine_sim_subset = cosine_similarity(tfidf_matrix[rated_movie_indices], tfidf_matrix)
+    sim_scores = cosine_sim_subset.mean(axis=0)
+
+    sim_scores = list(enumerate(sim_scores))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    movie_indices_sorted = [i[0] for i in sim_scores if movie_data.iloc[i[0]]['movieId'] not in user_rated_movies]
+
+    return movie_data.iloc[movie_indices_sorted[:top_n]][['title', 'genres']]
+
+print("\nContent-Based Recommendations for User 1:")
+print(get_content_based_recommendations(1, data, movies))
+
+# Hybrid Recommender combining Collaborative and Content-Based
+def hybrid_recommender(user_id, data, movies, top_n=10):
+    subset_data = get_top_subset(data, user_id=user_id, top_users_n=500, top_movies_n=500)
+    movie_data = movies.copy()
+    movie_data['genres'] = movie_data['genres'].fillna('')
+
+    tfidf = TfidfVectorizer(stop_words='english')
+    tfidf_matrix = tfidf.fit_transform(movie_data['genres'])
+    movie_indices = pd.Series(movie_data.index, index=movie_data['movieId'])
+
+    user_rated_movies = subset_data[subset_data['userId'] == user_id]['movieId'].tolist()
+    if not user_rated_movies:
+        print(f"User {user_id} has not rated any movies in subset.")
+        return pd.DataFrame(columns=['title', 'genres'])
+
+    user_movie_matrix = subset_data.pivot_table(index='userId', columns='movieId', values='rating').fillna(0)
+    if user_id not in user_movie_matrix.index:
+        print(f"User {user_id} not in subset pivot table.")
+        return pd.DataFrame(columns=['title', 'genres'])
+
+    user_similarity = cosine_similarity(user_movie_matrix)
+    np.fill_diagonal(user_similarity, 0)
+    user_sim_df = pd.DataFrame(user_similarity, index=user_movie_matrix.index, columns=user_movie_matrix.index)
+    similar_users = user_sim_df[user_id].sort_values(ascending=False).head(10).index
+
+    similar_users_ratings = user_movie_matrix.loc[similar_users]
+    weighted_ratings = similar_users_ratings.T.dot(user_sim_df[user_id].loc[similar_users])
+    sum_of_weights = (similar_users_ratings != 0).T.dot(user_sim_df[user_id].loc[similar_users])
+    sum_of_weights = sum_of_weights.replace(0, 1e-9)  # Avoid division by zero
+    cf_scores = weighted_ratings / sum_of_weights
+
+    rated_movie_indices = movie_indices[user_rated_movies].values
+    cosine_sim_subset = cosine_similarity(tfidf_matrix[rated_movie_indices], tfidf_matrix)
+    content_scores = pd.Series(cosine_sim_subset.mean(axis=0), index=movie_data.index)
+
+    movie_data['hybrid_score'] = (cf_scores.reindex(movie_data['movieId']).fillna(0).values + content_scores.values) / 2
+    movie_data = movie_data[~movie_data['movieId'].isin(user_rated_movies)]
+    top_hybrid = movie_data.sort_values('hybrid_score', ascending=False).head(top_n)
+
+    return top_hybrid[['title', 'genres']]
+
+print("\nHybrid Recommendations for User 1:")
+print(hybrid_recommender(1, data, movies))
+
+# Prompt for a user ID
+user_input = input("\nEnter User ID to generate recommendations for: ")
+try:
+    user_id = int(user_input)
+except ValueError:
+    print("Invalid input. Please enter a numeric user ID.")
+    exit()
+
+# Check if user exists
+if user_id not in data['userId'].unique():
+    print(f"\nUser {user_id} not found in the dataset.")
+    print("Displaying cold-start recommendations instead:")
+    top_rated = data.groupby('movieId')['rating'].mean().sort_values(ascending=False).head(10).index
+    print(movies[movies['movieId'].isin(top_rated)][['title', 'genres']])
+else:
+    # Collaborative Filtering
+    print(f"\nCollaborative Filtering Recommendations for User {user_id}:")
+    cf_results = user_based_collaborative_filtering(user_id, data)
+    print(cf_results)
+
+    # Content-Based Filtering
+    print(f"\nContent-Based Recommendations for User {user_id}:")
+    cb_results = get_content_based_recommendations(user_id, data, movies)
+    print(cb_results)
+
+    # Hybrid Recommender
+    print(f"\nHybrid Recommendations for User {user_id}:")
+    hybrid_results = hybrid_recommender(user_id, data, movies)
+    print(hybrid_results)
+
+    # Cold-start (optional, even for known users)
+    print(f"\nCold-start recommendations (top-rated overall):")
+    top_rated = data.groupby('movieId')['rating'].mean().sort_values(ascending=False).head(10).index
+    print(movies[movies['movieId'].isin(top_rated)][['title', 'genres']])
+
+
+
+# ----------- Real-Time Simulation Starts Here -----------
+
+import time  # for delay (optional)
+
+# Sort data by timestamp (ensure 'timestamp' column is datetime)
+data_sorted = data.sort_values('timestamp').reset_index(drop=True)
+
+# Initial train set: first 80% of data chronologically
+train_size = int(len(data_sorted) * 0.8)
+train_data = data_sorted.iloc[:train_size].copy()
+stream_data = data_sorted.iloc[train_size:].copy()
+
+print("\n--- Starting real-time simulation for one user only ---")
+
+first_user = None
+
+for idx, row in stream_data.iterrows():
+    user_id = row['userId']
+
+    if first_user is None:
+        first_user = user_id  # remember the first user we process
+    
+    if user_id != first_user:
+        print(f"\nReached ratings for a new user {user_id}. Stopping simulation.")
+        break  # stop after finishing the first user’s ratings
+
+    # Add the new rating to training data
+    new_rating = row.to_frame().T
+    train_data = pd.concat([train_data, new_rating], ignore_index=True)
+
+    # Generate and print recommendations for this user
+    recs = user_based_collaborative_filtering(user_id, train_data, top_n=5)
+    print(f"\nReal-time recommendations for user {user_id} after receiving new rating:")
+    print(recs)
+
+print("\n--- Real-time simulation ended ---")
